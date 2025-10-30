@@ -1,0 +1,15 @@
+.dockerignore
+.git
+.gitignore
+.mypy_cache
+.pytest_cache
+.venv
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.*
+dist
+build
+htmlcov

@@ -1,0 +1,42 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nodo_documentos_api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASYNC_DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/nodo_documentos
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      S3_REGION_NAME: ${S3_REGION_NAME}
+      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-}
+      S3_PRESIGNED_EXPIRATION_SECONDS: ${S3_PRESIGNED_EXPIRATION_SECONDS:-900}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: nodo_documentos_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nodo_documentos
+    ports:
+      - "5433:5433"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d nodo_documentos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
