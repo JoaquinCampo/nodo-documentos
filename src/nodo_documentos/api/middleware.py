@@ -20,10 +20,9 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
         self._public_paths = {"/", "/health", "/docs", "/openapi.json", "/redoc"}
 
     async def dispatch(self, request: Request, call_next):
-        # Skip API key check for public paths
         if request.url.path in self._public_paths:
             return await call_next(request)
-        
+
         if not self._api_key:
             return await call_next(request)
 
