@@ -1,8 +1,11 @@
+from dotenv import load_dotenv
 from fastapi import FastAPI
 
 from nodo_documentos.api.middleware import APIKeyMiddleware
 from nodo_documentos.api.router import api_router
 from nodo_documentos.utils.settings import api_settings
+
+load_dotenv()
 
 
 def create_app() -> FastAPI:

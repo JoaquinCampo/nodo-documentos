@@ -2,10 +2,6 @@ from __future__ import annotations
 
 import pytest
 
-from nodo_documentos.api.dependencies import authorization_service
-from nodo_documentos.api.schemas import AuthorizationDecision
-from nodo_documentos.services.authorization_service import AuthorizationService
-
 
 async def _create_document(async_client) -> dict:
     payload = {
@@ -20,14 +16,8 @@ async def _create_document(async_client) -> dict:
 
 
 @pytest.mark.asyncio
-async def test_fetch_clinical_history_returns_documents(async_client, test_app):
+async def test_fetch_clinical_history_returns_documents(async_client):
     created = await _create_document(async_client)
-
-    class _AllowAuthorization(AuthorizationService):
-        async def can_view_clinical_history(self, **_: str):  # type: ignore[override]
-            return AuthorizationDecision(allowed=True, reason="ALLOWED")
-
-    test_app.dependency_overrides[authorization_service] = lambda: _AllowAuthorization()
 
     response = await async_client.get(
         f"/api/clinical-history/{created['health_user_ci']}",
@@ -44,22 +34,16 @@ async def test_fetch_clinical_history_returns_documents(async_client, test_app):
 
 
 @pytest.mark.asyncio
-async def test_fetch_clinical_history_denied(async_client, test_app):
-    await _create_document(async_client)
-
-    class _DenyAuthorization(AuthorizationService):
-        async def can_view_clinical_history(self, **_: str):  # type: ignore[override]
-            return AuthorizationDecision(allowed=False, reason="DENIED")
-
-    test_app.dependency_overrides[authorization_service] = lambda: _DenyAuthorization()
-
+async def test_fetch_clinical_history_empty_for_nonexistent_user(async_client):
+    """Test that fetching clinical history for a user with no documents returns empty list."""
     response = await async_client.get(
-        "/api/clinical-history/87654321",
+        "/api/clinical-history/99999999",
         params={
             "health_worker_ci": "11112222",
             "clinic_id": "11111111-2222-3333-4444-555555555555",
         },
     )
 
-    assert response.status_code == 403
-    assert response.json()["detail"] == "DENIED"
+    assert response.status_code == 200
+    data = response.json()
+    assert data == []

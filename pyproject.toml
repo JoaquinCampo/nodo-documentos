@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.13.7"
 dependencies = [
     "aiosqlite>=0.21.0",
+    "alembic>=1.13.0",
     "asyncpg>=0.29.0",
     "boto3>=1.35.0",
     "fastapi>=0.120.0",
@@ -17,6 +18,7 @@ dependencies = [
     "loguru>=0.7.3",
     "pydantic>=2.12.3",
     "pydantic-settings>=2.11.0",
+    "python-dotenv>=1.0.0",
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
     "sqlalchemy>=2.0.44",
@@ -44,6 +46,11 @@ line-length = 88
 indent-width = 4
 
 target-version = "py313"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18.2",
+]
 
 [tool.ruff.lint]
 select = ["F", "I", "E", "W", "ARG", "T201"]
