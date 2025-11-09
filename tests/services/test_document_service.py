@@ -14,7 +14,7 @@ async def test_create_document(async_session):
     created = await service.create_document(
         created_by="worker-1",
         health_user_ci="patient-1",
-        clinic_id="clinic-1",
+        clinic_name="clinic-1",
         s3_url="s3://bucket/doc",
     )
 
@@ -32,13 +32,13 @@ async def test_list_documents_orders_desc(async_session):
     first = await service.create_document(
         created_by="worker-1",
         health_user_ci="patient-2",
-        clinic_id="clinic-1",
+        clinic_name="clinic-1",
         s3_url="s3://bucket/doc-1",
     )
     second = await service.create_document(
         created_by="worker-1",
         health_user_ci="patient-2",
-        clinic_id="clinic-1",
+        clinic_name="clinic-1",
         s3_url="s3://bucket/doc-2",
     )
 

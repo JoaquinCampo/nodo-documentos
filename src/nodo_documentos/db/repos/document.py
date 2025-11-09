@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from nodo_documentos.api.schemas import CI, LongString, UUIDStr
+from nodo_documentos.api.schemas import CI, LongString
 from nodo_documentos.db.models import Document
 
 
@@ -16,14 +16,14 @@ class DocumentRepository:
         *,
         created_by: CI,
         health_user_ci: CI,
-        clinic_id: UUIDStr,
+        clinic_name: str,
         s3_url: LongString,
     ) -> Document:
         """Persist a new document metadata row linked to the uploaded file."""
         document = Document(
             created_by=created_by,
             health_user_ci=health_user_ci,
-            clinic_id=clinic_id,
+            clinic_name=clinic_name,
             s3_url=s3_url,
         )
         self._session.add(document)

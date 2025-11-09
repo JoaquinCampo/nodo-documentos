@@ -13,5 +13,7 @@ class ClinicalDocumentChunk(Chunk):
 
     # Business ownership fields (document_id is inherited from Chunk)
     health_user_ci: str = Field(description="Patient CI - who the document belongs to")
-    clinic_id: str = Field(description="Clinic ID - which clinic manages the document")
+    clinic_name: str = Field(
+        description="Clinic name - which clinic manages the document"
+    )
     created_by: str = Field(description="Uploader CI - who uploaded the document")

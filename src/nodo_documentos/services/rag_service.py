@@ -61,7 +61,7 @@ class RAGService:
                 clinical_chunk = ClinicalDocumentChunk(
                     **chunk_dict,
                     health_user_ci=document.health_user_ci,
-                    clinic_id=document.clinic_id,
+                    clinic_name=document.clinic_name,
                     created_by=document.created_by,
                 )
                 clinical_chunks.append(clinical_chunk)

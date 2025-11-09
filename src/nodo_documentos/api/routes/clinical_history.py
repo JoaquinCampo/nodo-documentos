@@ -4,7 +4,7 @@ from nodo_documentos.api.dependencies import (
     clinical_history_access_service,
     document_service,
 )
-from nodo_documentos.api.schemas import CI, DocumentResponse, UUIDStr
+from nodo_documentos.api.schemas import CI, DocumentResponse
 from nodo_documentos.services.clinical_history_access_service import (
     ClinicalHistoryAccessService,
 )
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/clinical-history", tags=["clinical-history"])
 async def fetch_clinical_history(
     health_user_ci: CI,
     health_worker_ci: CI = Query(..., description="Worker requesting the history"),
-    clinic_id: UUIDStr = Query(..., description="Clinic requesting the history"),
+    clinic_name: str = Query(..., description="Clinic requesting the history"),
     documents: DocumentService = Depends(document_service),
     access_logs: ClinicalHistoryAccessService = Depends(
         clinical_history_access_service
@@ -34,7 +34,7 @@ async def fetch_clinical_history(
     await access_logs.log_access_attempt(
         health_user_ci=health_user_ci,
         health_worker_ci=health_worker_ci,
-        clinic_id=clinic_id,
+        clinic_id=clinic_name,
         viewed=True,
         decision_reason=None,
     )

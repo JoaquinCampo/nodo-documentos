@@ -55,7 +55,7 @@ async def create_document_upload_url(
     """Return a presigned URL so the front-end can upload the binary to S3."""
 
     filename = _sanitize_file_name(payload.file_name)
-    object_key = f"{payload.clinic_id}/{uuid4()}/{filename}"
+    object_key = f"{payload.clinic_name}/{uuid4()}/{filename}"
     presigned = generate_presigned_put_url(
         key=object_key,
         content_type=payload.content_type,

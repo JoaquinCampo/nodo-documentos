@@ -23,7 +23,7 @@ UUIDStr = Annotated[
 class DocumentCreateRequest(BaseModel):
     created_by: CI
     health_user_ci: CI
-    clinic_id: UUIDStr
+    clinic_name: str = Field(min_length=1, description="The unique name of the clinic")
     s3_url: LongString
 
 
@@ -31,7 +31,7 @@ class DocumentResponse(BaseModel):
     doc_id: UUID
     created_by: CI
     health_user_ci: CI
-    clinic_id: UUIDStr
+    clinic_name: str
     created_at: datetime
     s3_url: LongString
 
@@ -46,7 +46,7 @@ class AuthorizationDecision(BaseModel):
 class PresignedUploadRequest(BaseModel):
     file_name: Annotated[str, Field(min_length=1, max_length=255)]
     content_type: Annotated[str | None, Field(default=None, max_length=128)]
-    clinic_id: UUIDStr
+    clinic_name: str = Field(min_length=1, description="The unique name of the clinic")
 
 
 class PresignedUploadResponse(BaseModel):

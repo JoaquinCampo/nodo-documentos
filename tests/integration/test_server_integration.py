@@ -84,13 +84,13 @@ async def test_server_chat_flow():
             )
         # Step 1: Get presigned upload URL
         print("📤 Step 1: Getting presigned upload URL...")
-        clinic_id = "11111111-2222-3333-4444-555555555555"
+        clinic_name = "Test Clinic"
         upload_response = await client.post(
             f"{API_BASE}/documents/upload-url",
             json={
                 "file_name": "sample.pdf",
                 "content_type": "application/pdf",
-                "clinic_id": clinic_id,
+                "clinic_name": clinic_name,
             },
         )
         assert upload_response.status_code == 201, (
@@ -118,7 +118,7 @@ async def test_server_chat_flow():
         doc_payload = {
             "created_by": "12345678",
             "health_user_ci": "87654321",
-            "clinic_id": clinic_id,
+            "clinic_name": clinic_name,
             "s3_url": s3_url,
         }
 
@@ -257,7 +257,7 @@ async def test_server_chat_flow():
             f"{API_BASE}/clinical-history/87654321",
             params={
                 "health_worker_ci": "12345678",
-                "clinic_id": clinic_id,
+                "clinic_name": clinic_name,
             },
         )
         assert history_response.status_code == 200

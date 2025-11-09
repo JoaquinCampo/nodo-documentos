@@ -35,11 +35,12 @@ class Document(Base):
         index=True,
         doc="The CI of the health user who the document is for.",
     )
-    clinic_id: Mapped[str] = mapped_column(
+    clinic_name: Mapped[str] = mapped_column(
         String,
         nullable=False,
+        unique=True,
         index=True,
-        doc="The unique identifier for the clinic.",
+        doc="The unique name of the clinic.",
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

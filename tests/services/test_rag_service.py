@@ -74,7 +74,7 @@ async def test_document_creation_triggers_rag_indexing(
     payload = {
         "created_by": "12345678",
         "health_user_ci": "87654321",
-        "clinic_id": "11111111-2222-3333-4444-555555555555",
+        "clinic_name": "Test Clinic",
         "s3_url": "s3://bucket/test-doc.pdf",
     }
 
@@ -103,7 +103,7 @@ async def test_document_creation_triggers_rag_indexing(
     assert isinstance(clinical_chunk, ClinicalDocumentChunk)
     assert clinical_chunk.document_id == doc_id
     assert clinical_chunk.health_user_ci == "87654321"
-    assert clinical_chunk.clinic_id == "11111111-2222-3333-4444-555555555555"
+    assert clinical_chunk.clinic_name == "Test Clinic"
     assert clinical_chunk.created_by == "12345678"
 
     # Cleanup
@@ -125,7 +125,7 @@ async def test_rag_indexing_failure_does_not_break_document_creation(
     payload = {
         "created_by": "12345678",
         "health_user_ci": "87654321",
-        "clinic_id": "11111111-2222-3333-4444-555555555555",
+        "clinic_name": "Test Clinic",
         "s3_url": "s3://bucket/test-doc.pdf",
     }
 
@@ -186,7 +186,7 @@ async def test_rag_service_index_document_integration():
         doc_id=UUID("11111111-2222-3333-4444-555555555555"),
         created_by="12345678",
         health_user_ci="87654321",
-        clinic_id="11111111-2222-3333-4444-555555555555",
+        clinic_name="Test Clinic",
         s3_url="s3://bucket/test.pdf",
         created_at=datetime.now(),
     )
@@ -212,7 +212,7 @@ async def test_rag_service_index_document_integration():
         assert len(clinical_chunks) == 1
         assert clinical_chunks[0].document_id == "11111111-2222-3333-4444-555555555555"
         assert clinical_chunks[0].health_user_ci == "87654321"
-        assert clinical_chunks[0].clinic_id == "11111111-2222-3333-4444-555555555555"
+        assert clinical_chunks[0].clinic_name == "Test Clinic"
         assert clinical_chunks[0].created_by == "12345678"
 
 
@@ -276,7 +276,7 @@ async def test_rag_indexing_stores_chunks_in_qdrant(monkeypatch):
         doc_id=test_doc_id,
         created_by="12345678",
         health_user_ci="87654321",
-        clinic_id="11111111-2222-3333-4444-555555555555",
+        clinic_name="Test Clinic",
         s3_url="s3://bucket/test-integration.pdf",
         created_at=datetime.now(),
     )
@@ -300,7 +300,7 @@ async def test_rag_indexing_stores_chunks_in_qdrant(monkeypatch):
         payload = chunk_point.payload
         assert payload["document_id"] == str(test_doc_id)
         assert payload["health_user_ci"] == "87654321"
-        assert payload["clinic_id"] == "11111111-2222-3333-4444-555555555555"
+        assert payload["clinic_name"] == "Test Clinic"
         assert payload["created_by"] == "12345678"
         assert "text" in payload
         assert "chunk_id" in payload

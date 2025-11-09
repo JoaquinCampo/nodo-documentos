@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from nodo_documentos.app import create_app
+from nodo_documentos.api.router import api_router
 from nodo_documentos.db.models import Base
 from nodo_documentos.db.session import get_async_session
 
@@ -45,7 +45,18 @@ async def async_session() -> AsyncIterator[AsyncSession]:
 async def test_app(async_session: AsyncSession) -> AsyncIterator[FastAPI]:
     """FastAPI app instance bound to the ephemeral SQLite session."""
 
-    app = create_app()
+    app = FastAPI(title="Documentos Clinicos", version="0.1.0")
+    
+    @app.get("/")
+    async def root():
+        return {"status": "ok", "service": "nodo-documentos"}
+
+    @app.get("/health")
+    async def health():
+        return {"status": "healthy"}
+
+    # Include router but skip API key middleware for tests
+    app.include_router(api_router, prefix="/api")
 
     async def _override_session():
         yield async_session

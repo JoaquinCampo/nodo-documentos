@@ -9,7 +9,7 @@ async def test_create_document(async_client):
     payload = {
         "created_by": "12345678",
         "health_user_ci": "87654321",
-        "clinic_id": "11111111-2222-3333-4444-555555555555",
+        "clinic_name": "Test Clinic",
         "s3_url": "s3://bucket/doc-1",
     }
 
@@ -23,8 +23,8 @@ async def test_create_document(async_client):
 @pytest.mark.asyncio
 async def test_create_presigned_upload_url(async_client, monkeypatch):
     fake_uuid = "11111111-2222-3333-4444-555555555555"
-    clinic_id = "11111111-2222-3333-4444-555555555555"
-    expected_key = f"{clinic_id}/{fake_uuid}/document.pdf"
+    clinic_name = "Test Clinic"
+    expected_key = f"{clinic_name}/{fake_uuid}/document.pdf"
     expected_url = "https://example.com/upload"
     monkeypatch.setattr(
         "nodo_documentos.api.routes.documents.uuid4",
@@ -40,7 +40,7 @@ async def test_create_presigned_upload_url(async_client, monkeypatch):
         json={
             "file_name": "document.pdf",
             "content_type": "application/pdf",
-            "clinic_id": clinic_id,
+            "clinic_name": clinic_name,
         },
     )
 
@@ -55,7 +55,7 @@ async def test_create_presigned_upload_url(async_client, monkeypatch):
 @pytest.mark.asyncio
 async def test_presigned_upload_url_sanitizes_filename(async_client, monkeypatch):
     fake_uuid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
-    clinic_id = "bbbbbbbb-1111-2222-3333-cccccccccccc"
+    clinic_name = "Another Clinic"
     monkeypatch.setattr(
         "nodo_documentos.api.routes.documents.uuid4",
         lambda: fake_uuid,
@@ -76,7 +76,7 @@ async def test_presigned_upload_url_sanitizes_filename(async_client, monkeypatch
         json={
             "file_name": " nested/path/report.pdf ",
             "content_type": None,
-            "clinic_id": clinic_id,
+            "clinic_name": clinic_name,
         },
     )
 

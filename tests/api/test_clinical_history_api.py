@@ -7,7 +7,7 @@ async def _create_document(async_client) -> dict:
     payload = {
         "created_by": "12345678",
         "health_user_ci": "87654321",
-        "clinic_id": "11111111-2222-3333-4444-555555555555",
+        "clinic_name": "Test Clinic",
         "s3_url": "s3://bucket/doc-1",
     }
     response = await async_client.post("/api/documents", json=payload)
@@ -23,7 +23,7 @@ async def test_fetch_clinical_history_returns_documents(async_client):
         f"/api/clinical-history/{created['health_user_ci']}",
         params={
             "health_worker_ci": "11112222",
-            "clinic_id": "11111111-2222-3333-4444-555555555555",
+            "clinic_name": "Test Clinic",
         },
     )
 
@@ -40,7 +40,7 @@ async def test_fetch_clinical_history_empty_for_nonexistent_user(async_client):
         "/api/clinical-history/99999999",
         params={
             "health_worker_ci": "11112222",
-            "clinic_id": "11111111-2222-3333-4444-555555555555",
+            "clinic_name": "Test Clinic",
         },
     )
 
