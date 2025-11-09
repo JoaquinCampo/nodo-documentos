@@ -9,7 +9,7 @@ load_dotenv()
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="Prestadores de Salud", version="0.1.0")
+    app = FastAPI(title="Documentos Clinicos", version="0.1.0")
     if api_settings.key:
         app.add_middleware(
             APIKeyMiddleware,

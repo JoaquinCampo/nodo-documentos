@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "Joaquin Campos", email = "jcamponario@gmail.com" }
 ]
-requires-python = ">=3.13.7"
+requires-python = ">=3.12"
 dependencies = [
     "aiosqlite>=0.21.0",
     "alembic>=1.13.0",
