@@ -26,7 +26,13 @@ class VectorDB:
     def __init__(self) -> None:
         self._settings = settings
         self._collection = self._settings.collection_name
-        self._client = self._build_client()
+        self._client: QdrantClient | None = None
+
+    def _get_client(self) -> QdrantClient:
+        """Lazy initialization of Qdrant client."""
+        if self._client is None:
+            self._client = self._build_client()
+        return self._client
 
     def _build_client(self) -> QdrantClient:
         logger.debug(
@@ -48,8 +54,8 @@ class VectorDB:
     # ------------------------------------------------------------------
     def ensure_collection(self) -> None:
         """Create the target collection if it doesn't already exist."""
-
-        collection_exists = self._client.collection_exists(self._collection)
+        client = self._get_client()
+        collection_exists = client.collection_exists(self._collection)
 
         if not collection_exists:
             logger.info(
@@ -57,7 +63,7 @@ class VectorDB:
                 collection=self._collection,
                 size=self._settings.vector_size,
             )
-            self._client.create_collection(
+            client.create_collection(
                 collection_name=self._collection,
                 vectors_config=VectorParams(
                     size=self._settings.vector_size,
@@ -69,8 +75,9 @@ class VectorDB:
 
     def _ensure_payload_indexes(self) -> None:
         """Create payload indexes for fields used in queries."""
+        client = self._get_client()
         try:
-            self._client.create_payload_index(
+            client.create_payload_index(
                 collection_name=self._collection,
                 field_name="document_id",
                 field_schema=PayloadSchemaType.KEYWORD,
@@ -81,7 +88,7 @@ class VectorDB:
             logger.debug(f"Index on document_id may already exist: {e}")
 
         try:
-            self._client.create_payload_index(
+            client.create_payload_index(
                 collection_name=self._collection,
                 field_name="document_name",
                 field_schema=PayloadSchemaType.KEYWORD,
@@ -92,7 +99,7 @@ class VectorDB:
             logger.debug(f"Index on document_name may already exist: {e}")
 
         try:
-            self._client.create_payload_index(
+            client.create_payload_index(
                 collection_name=self._collection,
                 field_name="health_user_ci",
                 field_schema=PayloadSchemaType.KEYWORD,
@@ -129,7 +136,7 @@ class VectorDB:
             count=len(points),
             document=document.document_name,
         )
-        self._client.upsert(
+        self._get_client().upsert(
             collection_name=self._collection,
             points=points,
         )
@@ -175,7 +182,7 @@ class VectorDB:
 
         query_filter = Filter(must=filter_conditions)  # type: ignore
 
-        response = self._client.query_points(
+        response = self._get_client().query_points(
             collection_name=self._collection,
             query=list(embedding),
             limit=limit,
@@ -196,7 +203,7 @@ class VectorDB:
             ]
         )
 
-        results = self._client.scroll(
+        results = self._get_client().scroll(
             collection_name=self._collection,
             scroll_filter=query_filter,
             limit=1,
@@ -217,7 +224,7 @@ class VectorDB:
             ]
         )
 
-        results = self._client.scroll(
+        results = self._get_client().scroll(
             collection_name=self._collection,
             scroll_filter=query_filter,
             limit=limit,
