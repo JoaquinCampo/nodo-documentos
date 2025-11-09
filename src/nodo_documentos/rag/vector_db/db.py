@@ -8,7 +8,6 @@ from qdrant_client.models import (
     Distance,
     FieldCondition,
     Filter,
-    FilterSelector,
     MatchValue,
     PayloadSchemaType,
     PointStruct,
@@ -50,21 +49,21 @@ class VectorDB:
     def ensure_collection(self) -> None:
         """Create the target collection if it doesn't already exist."""
 
-        if self._client.collection_exists(self._collection):
-            return
+        collection_exists = self._client.collection_exists(self._collection)
 
-        logger.info(
-            "Creating Qdrant collection={collection} size={size}",
-            collection=self._collection,
-            size=self._settings.vector_size,
-        )
-        self._client.create_collection(
-            collection_name=self._collection,
-            vectors_config=VectorParams(
+        if not collection_exists:
+            logger.info(
+                "Creating Qdrant collection={collection} size={size}",
+                collection=self._collection,
                 size=self._settings.vector_size,
-                distance=Distance.COSINE,
-            ),
-        )
+            )
+            self._client.create_collection(
+                collection_name=self._collection,
+                vectors_config=VectorParams(
+                    size=self._settings.vector_size,
+                    distance=Distance.COSINE,
+                ),
+            )
 
         self._ensure_payload_indexes()
 
@@ -84,13 +83,24 @@ class VectorDB:
         try:
             self._client.create_payload_index(
                 collection_name=self._collection,
-                field_name="paper_name",
+                field_name="document_name",
                 field_schema=PayloadSchemaType.KEYWORD,
             )
-            logger.debug("Created index on paper_name")
+            logger.debug("Created index on document_name")
 
         except Exception as e:
-            logger.debug(f"Index on paper_name may already exist: {e}")
+            logger.debug(f"Index on document_name may already exist: {e}")
+
+        try:
+            self._client.create_payload_index(
+                collection_name=self._collection,
+                field_name="health_user_ci",
+                field_schema=PayloadSchemaType.KEYWORD,
+            )
+            logger.debug("Created index on health_user_ci")
+
+        except Exception as e:
+            logger.debug(f"Index on health_user_ci may already exist: {e}")
 
     # ------------------------------------------------------------------
     # Indexing
@@ -115,9 +125,9 @@ class VectorDB:
         ]
 
         logger.info(
-            "Upserting {count} chunks for paper={paper}",
+            "Upserting {count} chunks for document={document}",
             count=len(points),
-            paper=document.paper_name,
+            document=document.document_name,
         )
         self._client.upsert(
             collection_name=self._collection,
@@ -142,20 +152,28 @@ class VectorDB:
         embedding: Sequence[float],
         *,
         limit: int = 10,
-        paper_name: str | None = None,
+        health_user_ci: str,
+        document_id: str | None = None,
     ) -> list[ScoredPoint]:
-        """Search the vector store using a query embedding."""
+        """Search the vector store using a query embedding with ownership filtering."""
 
-        query_filter = None
-        if paper_name:
-            query_filter = Filter(
-                must=[
-                    FieldCondition(
-                        key="paper_name",
-                        match=MatchValue(value=paper_name),
-                    )
-                ]
+        # Ensure collection and indexes exist before searching
+        self.ensure_collection()
+
+        # Build filter with ownership constraints
+        filter_conditions = [
+            FieldCondition(
+                key="health_user_ci", match=MatchValue(value=health_user_ci)
+            ),
+        ]
+
+        # Add document filter if specified
+        if document_id:
+            filter_conditions.append(
+                FieldCondition(key="document_id", match=MatchValue(value=document_id))
             )
+
+        query_filter = Filter(must=filter_conditions)  # type: ignore
 
         response = self._client.query_points(
             collection_name=self._collection,
@@ -167,11 +185,15 @@ class VectorDB:
         )
         return list(response.points)
 
-    def document_exists(self, paper_name: str) -> bool:
-        """Return True if any chunks for the given paper are stored."""
+    def document_exists(self, document_name: str) -> bool:
+        """Return True if any chunks for the given document are stored."""
 
         query_filter = Filter(
-            must=[FieldCondition(key="paper_name", match=MatchValue(value=paper_name))]
+            must=[
+                FieldCondition(
+                    key="document_name", match=MatchValue(value=document_name)
+                )
+            ]
         )
 
         results = self._client.scroll(

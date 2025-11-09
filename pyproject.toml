@@ -30,6 +30,7 @@ dependencies = [
     "langchain-text-splitters>=1.0.0",
     "openai>=2.7.1",
     "qdrant-client>=1.15.1",
+    "cerebras-cloud-sdk>=1.59.0",
 ]
 
 [project.optional-dependencies]

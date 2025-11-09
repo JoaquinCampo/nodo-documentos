@@ -66,7 +66,7 @@ class OCRResponse(BaseModel):
 
 class Section(BaseModel):
     """
-    Represents a detected section within a paper.
+    Represents a detected section within a document.
 
     Extracted from markdown headers in the OCR output.
     """
@@ -126,7 +126,7 @@ class ParsedDocument(BaseModel):
         default_factory=lambda: str(uuid4()),
         description="Unique identifier (auto-generated UUID)",
     )
-    paper_name: str = Field(
+    document_name: str = Field(
         description="Human-readable identifier from filename (without extension)"
     )
     file_path: Path = Field(description="Absolute path to the PDF file")
@@ -134,7 +134,7 @@ class ParsedDocument(BaseModel):
         description="Full extracted text content (all pages concatenated)"
     )
     sections: list[Section] = Field(
-        default_factory=list, description="Identified sections within the paper"
+        default_factory=list, description="Identified sections within the document"
     )
     page_info: list[PageInfo] = Field(
         default_factory=list,
@@ -160,7 +160,7 @@ class ParsedDocument(BaseModel):
         """
         from nodo_documentos.rag.parsing.section_extractor import extract_sections
 
-        paper_name = file_path.stem
+        document_name = file_path.stem
 
         # Combine all page markdown into single text
         pages_text = [page.markdown for page in ocr_response.pages]
@@ -189,7 +189,7 @@ class ParsedDocument(BaseModel):
         )
 
         return cls(
-            paper_name=paper_name,
+            document_name=document_name,
             file_path=file_path.absolute(),
             text=full_text,
             sections=sections,

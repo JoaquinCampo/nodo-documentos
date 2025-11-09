@@ -56,9 +56,9 @@ class PDFParser:
 
         Example:
             >>> parser = PDFParser()
-            >>> doc = parser.parse_pdf("paper.pdf")
-            >>> print(doc.paper_name, len(doc.sections))
-            paper 29
+            >>> doc = parser.parse_pdf("document.pdf")
+            >>> print(doc.document_name, len(doc.sections))
+            document 29
         """
         # Validate file exists
         if not file_path.exists():

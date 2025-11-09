@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import AnyUrl, BaseModel, ConfigDict, Field
@@ -54,3 +54,43 @@ class PresignedUploadResponse(BaseModel):
     s3_url: AnyUrl
     object_key: LongString
     expires_in_seconds: Annotated[int, Field(gt=0)]
+
+
+class Message(BaseModel):
+    """A message in a conversation."""
+
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class ChatRequest(BaseModel):
+    """Request for chat query."""
+
+    query: str = Field(min_length=1, max_length=2000, description="User question")
+    conversation_history: list[Message] = Field(
+        default_factory=list,
+        max_length=20,
+        description="Previous conversation messages",
+    )
+    health_user_ci: CI = Field(description="Patient whose documents to search")
+    document_id: UUIDStr | None = Field(
+        default=None, description="Optional specific document ID"
+    )
+
+
+class ChunkSource(BaseModel):
+    """Source chunk used in the response."""
+
+    document_id: str = Field(description="Document ID")
+    chunk_id: str = Field(description="Chunk ID")
+    text: str = Field(description="Full chunk text")
+    similarity_score: float = Field(description="Similarity score from vector search")
+    page_number: int | None = Field(default=None, description="Page number")
+    section_title: str | None = Field(default=None, description="Section title")
+
+
+class ChatResponse(BaseModel):
+    """Response from chat query."""
+
+    answer: str = Field(description="LLM-generated answer")
+    sources: list[ChunkSource] = Field(description="Source chunks used")

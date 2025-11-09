@@ -10,11 +10,11 @@ class Chunk(BaseModel):
     """
 
     chunk_id: int = Field(
-        ge=0, description="Sequential chunk number within the paper (0-indexed)"
+        ge=0, description="Sequential chunk number within the document (0-indexed)"
     )
-    paper_id: str = Field(description="String UUID of the parent document")
-    paper_name: str = Field(
-        description="Human-readable paper identifier (filename stem)"
+    document_id: str = Field(description="String UUID of the parent document")
+    document_name: str = Field(
+        description="Human-readable document identifier (filename stem)"
     )
     text: str = Field(description="The actual chunk text content")
     section_title: str | None = Field(

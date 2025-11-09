@@ -72,7 +72,7 @@ class PDFChunker:
 
         TODO: Extend this to take into account tables, we should avoid splitting tables
         """
-        logger.info(f"Chunking document: {doc.paper_name}")
+        logger.info(f"Chunking document: {doc.document_name}")
 
         # Split by markdown headers first
         header_splits: list[Document] = self.header_splitter.split_text(doc.text)
@@ -98,8 +98,8 @@ class PDFChunker:
 
                 chunk = Chunk(
                     chunk_id=len(chunks),  # Sequential ID
-                    paper_id=str(doc.id),
-                    paper_name=doc.paper_name,
+                    document_id=str(doc.id),
+                    document_name=doc.document_name,
                     text=text_chunk,
                     section_title=section_title,
                     page_number=page_num,
@@ -111,7 +111,7 @@ class PDFChunker:
 
         total_tokens = sum(c.token_count for c in chunks)
         logger.success(
-            f"Created {len(chunks)} chunks from {doc.paper_name} "
+            f"Created {len(chunks)} chunks from {doc.document_name} "
             f"({total_tokens:,} tokens total)"
         )
 

@@ -55,9 +55,11 @@ class RAGService:
 
             clinical_chunks = []
             for chunk in base_chunks:
+                # Update document_id to match the SQL Document ID
+                chunk_dict = chunk.model_dump()
+                chunk_dict["document_id"] = str(document.doc_id)
                 clinical_chunk = ClinicalDocumentChunk(
-                    **chunk.model_dump(),
-                    document_id=str(document.doc_id),
+                    **chunk_dict,
                     health_user_ci=document.health_user_ci,
                     clinic_id=document.clinic_id,
                     created_by=document.created_by,

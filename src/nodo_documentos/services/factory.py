@@ -4,6 +4,7 @@ from nodo_documentos.db.repos.factory import (
     get_clinical_history_access_repository,
     get_document_repository,
 )
+from nodo_documentos.services.chat_service import ChatService
 from nodo_documentos.services.clinical_history_access_service import (
     ClinicalHistoryAccessService,
 )
@@ -40,3 +41,16 @@ def get_rag_service() -> RAGService:
     encoder = get_encoder()
 
     return RAGService(vector_db, pdf_parser, pdf_chunker, encoder)
+
+
+def get_chat_service() -> ChatService:
+    """Factory helper for the chat service."""
+    from nodo_documentos.rag.encoding.encoder import get_encoder
+    from nodo_documentos.rag.inference.service import get_inference_service
+    from nodo_documentos.rag.vector_db.db import get_vector_db
+
+    vector_db = get_vector_db()
+    encoder = get_encoder()
+    inference_service = get_inference_service()
+
+    return ChatService(vector_db, encoder, inference_service)

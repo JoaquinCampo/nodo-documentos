@@ -26,7 +26,7 @@ async def test_document_creation_triggers_rag_indexing(
     # Mock PDF parser
     mock_parsed_doc = ParsedDocument(
         id="test-doc-id",
-        paper_name="test_document",
+        document_name="test_document",
         file_path=Path("/tmp/test.pdf"),
         text="Test document content",
         sections=[],
@@ -40,8 +40,8 @@ async def test_document_creation_triggers_rag_indexing(
     mock_chunks = [
         Chunk(
             chunk_id=0,
-            paper_id="test-doc-id",
-            paper_name="test_document",
+            document_id="test-doc-id",
+            document_name="test_document",
             text="Test chunk content",
             section_title=None,
             page_number=1,
@@ -152,7 +152,7 @@ async def test_rag_service_index_document_integration():
     mock_pdf_bytes = b"%PDF-1.4 fake pdf content"
     mock_parsed_doc = ParsedDocument(
         id="test-doc-id",
-        paper_name="test_document",
+        document_name="test_document",
         file_path=Path("/tmp/test.pdf"),
         text="Test document content",
         sections=[],
@@ -162,8 +162,8 @@ async def test_rag_service_index_document_integration():
     mock_chunks = [
         Chunk(
             chunk_id=0,
-            paper_id="test-doc-id",
-            paper_name="test_document",
+            document_id="test-doc-id",
+            document_name="test_document",
             text="Test chunk",
             section_title=None,
             page_number=1,
@@ -256,7 +256,7 @@ async def test_rag_indexing_stores_chunks_in_qdrant(monkeypatch):
     # Mock PDF parser to return a simple parsed document
     mock_parsed_doc = ParsedDocument(
         id="test-integration-doc",
-        paper_name="test_integration",
+        document_name="test_integration",
         file_path=Path("/tmp/test.pdf"),
         text="# Test Document\n\nThis is a test document for integration testing.\n\n## Section 1\n\nSome content here.",
         sections=[],
@@ -306,9 +306,5 @@ async def test_rag_indexing_stores_chunks_in_qdrant(monkeypatch):
         assert "chunk_id" in payload
         print(f"✅ Chunk {payload['chunk_id']} has correct ownership metadata")
 
-    # Cleanup: remove test chunks (skip if index not available)
-    try:
-        vector_db.remove_document("test_integration")
-    except Exception as e:
-        # Cleanup failure is OK - chunks are stored, just can't delete without index
-        print(f"⚠️  Cleanup skipped (index required): {e}")
+    # Note: Test chunks remain in Qdrant for verification
+    # They can be manually cleaned up if needed
