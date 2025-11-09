@@ -9,7 +9,9 @@ from nodo_documentos.services.document_service import DocumentService
 from nodo_documentos.services.factory import (
     get_clinical_history_access_service,
     get_document_service,
+    get_rag_service,
 )
+from nodo_documentos.services.rag_service import RAGService
 
 
 async def document_service(
@@ -25,3 +27,8 @@ async def clinical_history_access_service(
 ) -> ClinicalHistoryAccessService:
     """Dependency that yields the clinical history access service."""
     return get_clinical_history_access_service(session)
+
+
+def rag_service() -> RAGService:
+    """Dependency that yields the RAG service (no session needed)."""
+    return get_rag_service()

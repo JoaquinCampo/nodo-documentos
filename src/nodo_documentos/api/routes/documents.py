@@ -1,8 +1,8 @@
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, BackgroundTasks, Depends, status
 
-from nodo_documentos.api.dependencies import document_service
+from nodo_documentos.api.dependencies import document_service, rag_service
 from nodo_documentos.api.schemas import (
     DocumentCreateRequest,
     DocumentResponse,
@@ -10,6 +10,8 @@ from nodo_documentos.api.schemas import (
     PresignedUploadResponse,
 )
 from nodo_documentos.services.document_service import DocumentService
+from nodo_documentos.services.rag_service import RAGService
+from nodo_documentos.services.settings import services_settings
 from nodo_documentos.utils.s3_utils import build_s3_uri, generate_presigned_put_url
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -28,11 +30,17 @@ def _sanitize_file_name(file_name: str) -> str:
 )
 async def create_document(
     payload: DocumentCreateRequest,
+    background_tasks: BackgroundTasks,
     service: DocumentService = Depends(document_service),
+    rag_service_instance: RAGService = Depends(rag_service),
 ) -> DocumentResponse:
     """Register a new clinical document and return its metadata."""
 
     document = await service.create_document(**payload.model_dump())
+
+    if services_settings.auto_index_documents:
+        background_tasks.add_task(rag_service_instance.index_document, document)
+
     return DocumentResponse.model_validate(document)
 
 

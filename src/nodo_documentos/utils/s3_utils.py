@@ -55,3 +55,32 @@ def generate_presigned_put_url(
         ExpiresIn=expiration,
     )
     return PresignedUrl(url=url, expires_in=expiration)
+
+
+def download_from_s3(s3_url: str) -> bytes:
+    """
+    Download an object from S3 given its s3:// URL.
+
+    Args:
+        s3_url: S3 URL in format "s3://bucket/key"
+
+    Returns:
+        Object content as bytes
+
+    Raises:
+        ValueError: If URL format is invalid
+        Exception: If S3 download fails (caller should handle gracefully)
+    """
+    if not s3_url.startswith("s3://"):
+        raise ValueError(f"Invalid S3 URL format: {s3_url}")
+
+    # Extract bucket and key from s3://bucket/key format
+    path_part = s3_url[5:]  # Remove "s3://"
+    if "/" not in path_part:
+        raise ValueError(f"Invalid S3 URL format, missing key: {s3_url}")
+
+    bucket, key = path_part.split("/", 1)
+
+    client = create_s3_client()
+    response = client.get_object(Bucket=bucket, Key=key)
+    return response["Body"].read()
