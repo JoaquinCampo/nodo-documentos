@@ -49,3 +49,27 @@ class ClinicalHistoryAccessRepository:
         )
         result = await self._session.scalars(stmt)
         return list[ClinicalHistoryAccessLog](result.all())
+
+    async def list_by_health_worker(
+        self,
+        health_worker_ci: str,
+        health_user_ci: str | None = None,
+    ) -> list[ClinicalHistoryAccessLog]:
+        """Return log entries for a health worker ordered by most recent first."""
+
+        stmt = select(ClinicalHistoryAccessLog).where(
+            ClinicalHistoryAccessLog.health_worker_ci == health_worker_ci
+        )
+
+        if health_user_ci is not None:
+            stmt = stmt.where(
+                ClinicalHistoryAccessLog.health_user_ci == health_user_ci
+            )
+
+        stmt = stmt.order_by(
+            ClinicalHistoryAccessLog.requested_at.desc(),
+            ClinicalHistoryAccessLog.id.desc(),
+        )
+
+        result = await self._session.scalars(stmt)
+        return list[ClinicalHistoryAccessLog](result.all())

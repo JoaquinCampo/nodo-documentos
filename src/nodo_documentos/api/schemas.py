@@ -94,3 +94,19 @@ class ChatResponse(BaseModel):
 
     answer: str = Field(description="LLM-generated answer")
     sources: list[ChunkSource] = Field(description="Source chunks used")
+
+
+class ClinicalHistoryAccessLogResponse(BaseModel):
+    """Response model for clinical history access log entries."""
+
+    id: int = Field(description="Log entry ID")
+    health_user_ci: CI = Field(description="CI of the health user (patient)")
+    health_worker_ci: CI = Field(description="CI of the health worker requesting access")
+    clinic_id: str = Field(description="Clinic ID where the request was made")
+    requested_at: datetime = Field(description="Timestamp when the access was requested")
+    viewed: bool = Field(description="Whether access was granted")
+    decision_reason: str | None = Field(
+        default=None, description="Optional reason for the access decision"
+    )
+
+    model_config = ConfigDict(from_attributes=True)
