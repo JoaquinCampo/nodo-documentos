@@ -7,6 +7,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      qdrant:
+        condition: service_healthy
     environment:
       ASYNC_DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/nodo_documentos
       S3_BUCKET_NAME: ${S3_BUCKET_NAME}
@@ -16,6 +18,12 @@ services:
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+      QDRANT_HOST: qdrant
+      QDRANT_GRPC_PORT: 6334
+      QDRANT_API_KEY: ${QDRANT_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY}
+      CEREBRAS_API_KEY: ${CEREBRAS_API_KEY}
     ports:
       - "8000:8000"
     restart: unless-stopped
@@ -29,7 +37,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: nodo_documentos
     ports:
-      - "5433:5433"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -38,5 +46,21 @@ services:
       timeout: 5s
       retries: 5
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: nodo_documentos_qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
+  qdrant_data:
