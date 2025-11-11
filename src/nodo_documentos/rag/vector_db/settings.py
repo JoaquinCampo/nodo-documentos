@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     host: str = ""
     grpc_port: int = 6334
     api_key: str = ""
+    https: bool = True
 
     prefer_grpc: bool = True
     collection_name: str = "clinical-documents"

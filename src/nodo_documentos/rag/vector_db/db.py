@@ -36,10 +36,12 @@ class VectorDB:
 
     def _build_client(self) -> QdrantClient:
         logger.debug(
-            "Connecting to Qdrant host={host} grpc_port={port} prefer_grpc={pref_grpc}",
+            "Connecting to Qdrant host={host} grpc_port={port} "
+            "prefer_grpc={pref_grpc} https={https}",
             host=self._settings.host,
             port=self._settings.grpc_port,
             pref_grpc=self._settings.prefer_grpc,
+            https=self._settings.https,
         )
         return QdrantClient(
             host=self._settings.host,
@@ -47,6 +49,7 @@ class VectorDB:
             prefer_grpc=self._settings.prefer_grpc,
             timeout=self._settings.timeout_seconds,
             api_key=self._settings.api_key,
+            https=self._settings.https,
         )
 
     # ------------------------------------------------------------------

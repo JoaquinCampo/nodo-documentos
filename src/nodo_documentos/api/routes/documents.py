@@ -1,3 +1,4 @@
+import asyncio
 from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, status
@@ -9,6 +10,7 @@ from nodo_documentos.api.schemas import (
     PresignedUploadRequest,
     PresignedUploadResponse,
 )
+from nodo_documentos.db.models import Document
 from nodo_documentos.services.document_service import DocumentService
 from nodo_documentos.services.rag_service import RAGService
 from nodo_documentos.services.settings import services_settings
@@ -21,6 +23,22 @@ def _sanitize_file_name(file_name: str) -> str:
     trimmed = file_name.strip()
     normalized = trimmed.replace("\\", "/").split("/")[-1]
     return normalized or "upload"
+
+
+def _run_async_index_document(rag_service: RAGService, document: Document) -> None:
+    """
+    Sync wrapper for async index_document function.
+
+    This is needed because FastAPI BackgroundTasks doesn't handle async functions
+    well in serverless environments like Vercel. We create a new event loop here.
+    """
+    try:
+        # Create a new event loop for the background task
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(rag_service.index_document(document))
+    finally:
+        loop.close()
 
 
 @router.post(
@@ -39,7 +57,9 @@ async def create_document(
     document = await service.create_document(**payload.model_dump())
 
     if services_settings.auto_index_documents:
-        background_tasks.add_task(rag_service_instance.index_document, document)
+        background_tasks.add_task(
+            _run_async_index_document, rag_service_instance, document
+        )
 
     return DocumentResponse.model_validate(document)
 

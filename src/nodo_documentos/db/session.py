@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.pool import NullPool
 
 from nodo_documentos.db.settings import db_settings
 
@@ -29,9 +30,13 @@ def _create_async_engine() -> AsyncEngine:
             f"Expected postgresql+asyncpg:// or postgresql://, got: {url[:30]}..."
         )
 
+    # Use NullPool for serverless environments (Vercel/Lambda)
+    # This prevents connection reuse across different event loops
+    # Each request gets a fresh connection that's properly scoped
     engine = create_async_engine(
         url,
         echo=db_settings.sqlalchemy_echo,
+        poolclass=NullPool,  # Disable connection pooling for serverless
     )
     logger.info("Async database engine initialized")
     return engine

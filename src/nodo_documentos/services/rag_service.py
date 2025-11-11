@@ -79,8 +79,10 @@ class RAGService:
             )
 
         except Exception as e:
+            error_msg = str(e)
             logger.error(
-                f"Failed to index document {document.doc_id}: {e}", exc_info=True
+                f"Failed to index document {document.doc_id}: {error_msg}",
+                exc_info=True,
             )
             # Don't raise - indexing failures shouldn't break document creation
 

@@ -1,4 +1,7 @@
+import urllib.parse
+
 import boto3
+import httpx
 from botocore.client import BaseClient
 from pydantic import BaseModel
 
@@ -59,10 +62,12 @@ def generate_presigned_put_url(
 
 def download_from_s3(s3_url: str) -> bytes:
     """
-    Download an object from S3 given its s3:// URL.
+    Download an object from S3 given its URL.
+
+    Supports both s3:// URLs and HTTPS presigned URLs.
 
     Args:
-        s3_url: S3 URL in format "s3://bucket/key"
+        s3_url: S3 URL in format "s3://bucket/key" or HTTPS presigned URL
 
     Returns:
         Object content as bytes
@@ -71,16 +76,32 @@ def download_from_s3(s3_url: str) -> bytes:
         ValueError: If URL format is invalid
         Exception: If S3 download fails (caller should handle gracefully)
     """
-    if not s3_url.startswith("s3://"):
-        raise ValueError(f"Invalid S3 URL format: {s3_url}")
+    # Handle s3:// URLs
+    if s3_url.startswith("s3://"):
+        # Extract bucket and key from s3://bucket/key format
+        path_part = s3_url[5:]  # Remove "s3://"
+        if "/" not in path_part:
+            raise ValueError(f"Invalid S3 URL format, missing key: {s3_url}")
 
-    # Extract bucket and key from s3://bucket/key format
-    path_part = s3_url[5:]  # Remove "s3://"
-    if "/" not in path_part:
-        raise ValueError(f"Invalid S3 URL format, missing key: {s3_url}")
+        bucket, key = path_part.split("/", 1)
+        # URL-decode the key to handle encoded characters (e.g., %20 -> space)
+        # The s3_url may be URL-encoded when stored, but S3 keys use actual characters
+        key = urllib.parse.unquote(key)
 
-    bucket, key = path_part.split("/", 1)
+        client = create_s3_client()
+        response = client.get_object(Bucket=bucket, Key=key)
+        return response["Body"].read()
 
-    client = create_s3_client()
-    response = client.get_object(Bucket=bucket, Key=key)
-    return response["Body"].read()
+    # Handle HTTPS presigned URLs
+    if s3_url.startswith("https://"):
+        try:
+            with httpx.Client(timeout=30.0, follow_redirects=True) as client:
+                response = client.get(s3_url)
+                response.raise_for_status()
+                return response.content
+        except httpx.HTTPError as e:
+            raise ValueError(
+                f"Failed to download from HTTPS URL: {s3_url}. Error: {e}"
+            ) from e
+
+    raise ValueError(f"Invalid S3 URL format: {s3_url}")

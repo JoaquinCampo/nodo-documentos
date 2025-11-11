@@ -18,12 +18,13 @@ services:
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
-      QDRANT_HOST: qdrant
-      QDRANT_GRPC_PORT: 6334
-      QDRANT_API_KEY: ${QDRANT_API_KEY:-}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      MISTRAL_API_KEY: ${MISTRAL_API_KEY}
-      CEREBRAS_API_KEY: ${CEREBRAS_API_KEY}
+      qdrant_host: qdrant
+      qdrant_grpc_port: 6334
+      qdrant_https: "false"  # Disable TLS for local Docker Qdrant
+      qdrant_api_key: ${qdrant_api_key}
+      openai_api_key: ${openai_api_key}
+      mistral_api_key: ${mistral_api_key}
+      cerebras_api_key: ${cerebras_api_key}
     ports:
       - "8000:8000"
     restart: unless-stopped
@@ -56,10 +57,11 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/6333'"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 3
+      start_period: 10s
 
 volumes:
   postgres_data:
