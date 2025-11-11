@@ -1,3 +1,5 @@
+from urllib.parse import quote
+
 import pytest
 
 from nodo_documentos.utils.s3_utils import PresignedUrl
@@ -47,7 +49,9 @@ async def test_create_presigned_upload_url(async_client, monkeypatch):
     assert response.status_code == 201
     payload = response.json()
     assert payload["object_key"] == expected_key
-    assert payload["s3_url"] == f"s3://{s3_settings.bucket_name}/{expected_key}"
+    # S3 URI should have URL-encoded spaces in the key
+    expected_s3_url = f"s3://{s3_settings.bucket_name}/{quote(expected_key, safe='/')}"
+    assert payload["s3_url"] == expected_s3_url
     assert payload["upload_url"] == expected_url
     assert payload["expires_in_seconds"] == 600
 

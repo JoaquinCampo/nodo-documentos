@@ -38,9 +38,8 @@ class Document(Base):
     clinic_name: Mapped[str] = mapped_column(
         String,
         nullable=False,
-        unique=True,
         index=True,
-        doc="The unique name of the clinic.",
+        doc="The name of the clinic.",
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -77,8 +76,8 @@ class ClinicalHistoryAccessLog(Base):
         index=True,
         doc="The CI of the health worker who requests the clinical history.",
     )
-    clinic_id: Mapped[str] = mapped_column(
-        String, nullable=False, index=True, doc="The clinic id the worker belongs to."
+    clinic_name: Mapped[str] = mapped_column(
+        String, nullable=False, index=True, doc="The clinic name the worker belongs to."
     )
     requested_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

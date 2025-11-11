@@ -55,7 +55,7 @@ Configurá estas variables antes de exponer el nuevo endpoint:
 - `S3_ENDPOINT_URL`: opcional si usás un endpoint custom (p. ej. LocalStack).
 - `S3_PRESIGNED_EXPIRATION_SECONDS`: TTL en segundos del URL generado (default `900`).
 
-El endpoint `POST /api/documents/upload-url` recibe `clinic_id`, `file_name` (y opcionalmente `content_type`) y devuelve tanto el `upload_url` como el `s3_url` que luego debe usarse en `POST /api/documents`. Cada archivo queda almacenado bajo `bucket/<clinic_id>/<uuid>/<archivo>`.
+El endpoint `POST /api/documents/upload-url` recibe `clinic_name`, `file_name` (y opcionalmente `content_type`) y devuelve tanto el `upload_url` como el `s3_url` que luego debe usarse en `POST /api/documents`. Cada archivo queda almacenado bajo `bucket/<clinic_name>/<uuid>/<archivo>`.
 
 ### Autenticación por API Key
 

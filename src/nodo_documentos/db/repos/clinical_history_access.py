@@ -15,7 +15,7 @@ class ClinicalHistoryAccessRepository:
         *,
         health_user_ci: str,
         health_worker_ci: str,
-        clinic_id: str,
+        clinic_name: str,
         viewed: bool,
         decision_reason: str | None,
     ) -> ClinicalHistoryAccessLog:
@@ -24,7 +24,7 @@ class ClinicalHistoryAccessRepository:
         entry = ClinicalHistoryAccessLog(
             health_user_ci=health_user_ci,
             health_worker_ci=health_worker_ci,
-            clinic_id=clinic_id,
+            clinic_name=clinic_name,
             viewed=viewed,
             decision_reason=decision_reason,
         )
@@ -62,9 +62,7 @@ class ClinicalHistoryAccessRepository:
         )
 
         if health_user_ci is not None:
-            stmt = stmt.where(
-                ClinicalHistoryAccessLog.health_user_ci == health_user_ci
-            )
+            stmt = stmt.where(ClinicalHistoryAccessLog.health_user_ci == health_user_ci)
 
         stmt = stmt.order_by(
             ClinicalHistoryAccessLog.requested_at.desc(),

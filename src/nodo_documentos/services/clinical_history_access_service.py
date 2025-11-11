@@ -15,7 +15,7 @@ class ClinicalHistoryAccessService:
         *,
         health_user_ci: str,
         health_worker_ci: str,
-        clinic_id: str,
+        clinic_name: str,
         viewed: bool,
         decision_reason: str | None,
     ) -> ClinicalHistoryAccessLog:
@@ -23,7 +23,7 @@ class ClinicalHistoryAccessService:
         return await self._access_repo.log_access(
             health_user_ci=health_user_ci,
             health_worker_ci=health_worker_ci,
-            clinic_id=clinic_id,
+            clinic_name=clinic_name,
             viewed=viewed,
             decision_reason=decision_reason,
         )

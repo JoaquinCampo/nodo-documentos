@@ -38,7 +38,7 @@ async def fetch_clinical_history(
     await access_logs.log_access_attempt(
         health_user_ci=health_user_ci,
         health_worker_ci=health_worker_ci,
-        clinic_id=clinic_name,
+        clinic_name=clinic_name,
         viewed=True,
         decision_reason=None,
     )
@@ -70,6 +70,4 @@ async def fetch_health_worker_access_history(
     logs = await access_logs.list_access_attempts_for_health_worker(
         health_worker_ci=health_worker_ci, health_user_ci=health_user_ci
     )
-    return [
-        ClinicalHistoryAccessLogResponse.model_validate(log) for log in logs
-    ]
+    return [ClinicalHistoryAccessLogResponse.model_validate(log) for log in logs]

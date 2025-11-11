@@ -18,7 +18,7 @@ async def test_log_access_attempt(async_session):
     entry = await service.log_access_attempt(
         health_user_ci="patient-1",
         health_worker_ci="worker-1",
-        clinic_id="clinic-1",
+        clinic_name="clinic-1",
         viewed=True,
         decision_reason="ALLOWED",
     )
@@ -38,14 +38,14 @@ async def test_list_access_attempts_orders_desc(async_session):
     first = await service.log_access_attempt(
         health_user_ci="patient-2",
         health_worker_ci="worker-1",
-        clinic_id="clinic-1",
+        clinic_name="clinic-1",
         viewed=False,
         decision_reason="DENIED",
     )
     second = await service.log_access_attempt(
         health_user_ci="patient-2",
         health_worker_ci="worker-1",
-        clinic_id="clinic-1",
+        clinic_name="clinic-1",
         viewed=True,
         decision_reason="ALLOWED",
     )

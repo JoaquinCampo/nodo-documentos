@@ -23,7 +23,7 @@ UUIDStr = Annotated[
 class DocumentCreateRequest(BaseModel):
     created_by: CI
     health_user_ci: CI
-    clinic_name: str = Field(min_length=1, description="The unique name of the clinic")
+    clinic_name: str = Field(min_length=1, description="The name of the clinic")
     s3_url: LongString
 
 
@@ -46,7 +46,7 @@ class AuthorizationDecision(BaseModel):
 class PresignedUploadRequest(BaseModel):
     file_name: Annotated[str, Field(min_length=1, max_length=255)]
     content_type: Annotated[str | None, Field(default=None, max_length=128)]
-    clinic_name: str = Field(min_length=1, description="The unique name of the clinic")
+    clinic_name: str = Field(min_length=1, description="The name of the clinic")
 
 
 class PresignedUploadResponse(BaseModel):
@@ -101,9 +101,13 @@ class ClinicalHistoryAccessLogResponse(BaseModel):
 
     id: int = Field(description="Log entry ID")
     health_user_ci: CI = Field(description="CI of the health user (patient)")
-    health_worker_ci: CI = Field(description="CI of the health worker requesting access")
-    clinic_id: str = Field(description="Clinic ID where the request was made")
-    requested_at: datetime = Field(description="Timestamp when the access was requested")
+    health_worker_ci: CI = Field(
+        description="CI of the health worker requesting access"
+    )
+    clinic_name: str = Field(description="Clinic name where the request was made")
+    requested_at: datetime = Field(
+        description="Timestamp when the access was requested"
+    )
     viewed: bool = Field(description="Whether access was granted")
     decision_reason: str | None = Field(
         default=None, description="Optional reason for the access decision"

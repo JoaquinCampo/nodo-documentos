@@ -12,7 +12,7 @@ async def test_log_access_persists_attempt(async_session):
     entry = await repo.log_access(
         health_user_ci="patient-1",
         health_worker_ci="worker-777",
-        clinic_id="clinic-2",
+        clinic_name="clinic-2",
         viewed=True,
         decision_reason="ALLOWED",
     )
@@ -33,14 +33,14 @@ async def test_list_by_health_user_orders_desc(async_session):
     first = await repo.log_access(
         health_user_ci="patient-2",
         health_worker_ci="worker-1",
-        clinic_id="clinic-2",
+        clinic_name="clinic-2",
         viewed=False,
         decision_reason="DENIED",
     )
     second = await repo.log_access(
         health_user_ci="patient-2",
         health_worker_ci="worker-1",
-        clinic_id="clinic-2",
+        clinic_name="clinic-2",
         viewed=True,
         decision_reason="ALLOWED",
     )
