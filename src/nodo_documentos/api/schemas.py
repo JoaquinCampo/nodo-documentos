@@ -59,8 +59,10 @@ class PresignedUploadResponse(BaseModel):
 class Message(BaseModel):
     """A message in a conversation."""
 
-    role: Literal["user", "assistant"]
-    content: str
+    role: Literal["user", "assistant"] = Field(
+        description="Message role: 'user' for user messages, 'assistant' for AI responses"
+    )
+    content: str = Field(description="The message content")
 
 
 class ChatRequest(BaseModel):
@@ -72,7 +74,9 @@ class ChatRequest(BaseModel):
         max_length=20,
         description="Previous conversation messages",
     )
-    health_user_ci: CI = Field(description="Patient whose documents to search")
+    health_user_ci: CI = Field(
+        description="Patient's CI (8-digit identifier) whose documents to search"
+    )
     document_id: UUIDStr | None = Field(
         default=None, description="Optional specific document ID"
     )

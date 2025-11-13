@@ -144,3 +144,56 @@ async def test_fetch_health_worker_access_history_validation_error(async_client)
     )
 
     assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_fetch_health_user_access_history_by_user_ci(async_client):
+    """Test fetching access history for a health user by their CI."""
+    # Create a document and access log entry
+    created = await _create_document(async_client)
+
+    # Access the clinical history to create a log entry
+    await async_client.get(
+        f"/api/clinical-history/{created['health_user_ci']}",
+        params={
+            "health_worker_ci": "11112222",
+            "clinic_name": "Test Clinic",
+        },
+    )
+
+    # Fetch access history for the user
+    response = await async_client.get(
+        f"/api/clinical-history/health-users/{created['health_user_ci']}/access-history"
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) >= 1
+    assert data[0]["health_user_ci"] == created["health_user_ci"]
+    assert data[0]["health_worker_ci"] == "11112222"
+    assert "requested_at" in data[0]
+    assert "viewed" in data[0]
+
+
+@pytest.mark.asyncio
+async def test_fetch_health_user_access_history_empty_for_nonexistent_user(
+    async_client,
+):
+    """Test that fetching access history for a non-existent user returns empty list."""
+    response = await async_client.get(
+        "/api/clinical-history/health-users/99999999/access-history"
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data == []
+
+
+@pytest.mark.asyncio
+async def test_fetch_health_user_access_history_validation_error(async_client):
+    """Test that invalid CI format returns validation error."""
+    response = await async_client.get(
+        "/api/clinical-history/health-users/123/access-history"
+    )
+
+    assert response.status_code == 422

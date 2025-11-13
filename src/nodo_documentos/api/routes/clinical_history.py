@@ -71,3 +71,27 @@ async def fetch_health_worker_access_history(
         health_worker_ci=health_worker_ci, health_user_ci=health_user_ci
     )
     return [ClinicalHistoryAccessLogResponse.model_validate(log) for log in logs]
+
+
+@router.get(
+    "/health-users/{health_user_ci}/access-history",
+    response_model=list[ClinicalHistoryAccessLogResponse],
+)
+async def fetch_health_user_access_history(
+    health_user_ci: CI,
+    access_logs: ClinicalHistoryAccessService = Depends(
+        clinical_history_access_service
+    ),
+) -> list[ClinicalHistoryAccessLogResponse]:
+    """
+    Fetch access history for a health user (patient) by their CI.
+
+    Returns all access attempts made to the specified patient's documents,
+    ordered from newest to oldest. This includes all attempts regardless of
+    whether access was granted or denied.
+    """
+
+    logs = await access_logs.list_access_attempts_for_health_user(
+        health_user_ci=health_user_ci
+    )
+    return [ClinicalHistoryAccessLogResponse.model_validate(log) for log in logs]

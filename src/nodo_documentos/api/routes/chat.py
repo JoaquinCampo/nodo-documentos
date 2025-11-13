@@ -18,6 +18,28 @@ async def chat(
 
     Searches document chunks using vector similarity, assembles context,
     and generates a response using Cerebras inference.
+
+    **Request Body:**
+    - `query`: The user's question
+    - `health_user_ci`: Patient's CI
+    - `conversation_history`: Previous messages in the conversation
+    - `document_id`: Optional UUID to limit search to a specific document
+
+    **Response:**
+    - `answer`: LLM-generated answer based on retrieved document chunks
+    - `sources`: List of document chunks used to generate the answer, with similarity scores
+
+    **Example Request:**
+    ```json
+    {
+      "query": "What is the patient's diagnosis?",
+      "health_user_ci": "87654321",
+      "conversation_history": [
+        {"role": "user", "content": "Previous question"},
+        {"role": "assistant", "content": "Previous answer"}
+      ]
+    }
+    ```
     """
     try:
         return await service.chat(request)
