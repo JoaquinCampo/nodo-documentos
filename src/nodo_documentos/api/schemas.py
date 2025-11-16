@@ -25,6 +25,16 @@ class DocumentCreateRequest(BaseModel):
     health_user_ci: CI
     clinic_name: str = Field(min_length=1, description="The name of the clinic")
     s3_url: LongString
+    title: str | None = Field(
+        default=None, max_length=255, description="Title of the document"
+    )
+    description: str | None = Field(
+        default=None, max_length=1000, description="Description of the document"
+    )
+    content_type: str | None = Field(
+        default=None, max_length=128, description="MIME type of the document"
+    )
+    provider_name: str | None = Field(default=None, description="Name of the provider")
 
 
 class DocumentResponse(BaseModel):
@@ -34,13 +44,12 @@ class DocumentResponse(BaseModel):
     clinic_name: str
     created_at: datetime
     s3_url: LongString
+    title: str | None = None
+    description: str | None = None
+    content_type: str | None = None
+    provider_name: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
-
-
-class AuthorizationDecision(BaseModel):
-    allowed: bool
-    reason: str | None = None
 
 
 class PresignedUploadRequest(BaseModel):
@@ -98,23 +107,3 @@ class ChatResponse(BaseModel):
 
     answer: str = Field(description="LLM-generated answer")
     sources: list[ChunkSource] = Field(description="Source chunks used")
-
-
-class ClinicalHistoryAccessLogResponse(BaseModel):
-    """Response model for clinical history access log entries."""
-
-    id: int = Field(description="Log entry ID")
-    health_user_ci: CI = Field(description="CI of the health user (patient)")
-    health_worker_ci: CI = Field(
-        description="CI of the health worker requesting access"
-    )
-    clinic_name: str = Field(description="Clinic name where the request was made")
-    requested_at: datetime = Field(
-        description="Timestamp when the access was requested"
-    )
-    viewed: bool = Field(description="Whether access was granted")
-    decision_reason: str | None = Field(
-        default=None, description="Optional reason for the access decision"
-    )
-
-    model_config = ConfigDict(from_attributes=True)

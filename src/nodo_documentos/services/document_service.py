@@ -16,6 +16,10 @@ class DocumentService:
         health_user_ci: CI,
         clinic_name: str,
         s3_url: LongString,
+        title: str | None = None,
+        description: str | None = None,
+        content_type: str | None = None,
+        provider_name: str | None = None,
     ) -> Document:
         """Register a newly uploaded document."""
 
@@ -24,6 +28,10 @@ class DocumentService:
             health_user_ci=health_user_ci,
             clinic_name=clinic_name,
             s3_url=s3_url,
+            title=title,
+            description=description,
+            content_type=content_type,
+            provider_name=provider_name,
         )
 
     async def list_documents_for_health_user(

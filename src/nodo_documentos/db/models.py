@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import Boolean, DateTime, String, func
+from sqlalchemy import DateTime, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -53,46 +53,23 @@ class Document(Base):
         nullable=False,
         doc="The URL of the document in S3.",
     )
-
-
-class ClinicalHistoryAccessLog(Base):
-    """
-    Persists every attempt to read a user's clinical history, whether access was granted
-    by HCEN or not.
-    """
-
-    __tablename__ = "clinical_history_access_logs"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    health_user_ci: Mapped[str] = mapped_column(
-        String(8),
-        nullable=False,
-        index=True,
-        doc="The CI of the health user who the clincal history is requested for.",
+    title: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        doc="Title of the document.",
     )
-    health_worker_ci: Mapped[str] = mapped_column(
-        String(8),
-        nullable=False,
-        index=True,
-        doc="The CI of the health worker who requests the clinical history.",
+    description: Mapped[str | None] = mapped_column(
+        String(1000),
+        nullable=True,
+        doc="Description of the document.",
     )
-    clinic_name: Mapped[str] = mapped_column(
-        String, nullable=False, index=True, doc="The clinic name the worker belongs to."
-    )
-    requested_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        nullable=False,
-        default=lambda: datetime.now(LOCAL_TIMEZONE),
-        server_default=func.now(),
-    )
-    viewed: Mapped[bool] = mapped_column(
-        Boolean,
-        nullable=False,
-        default=False,
-        doc="Whether the worker was allowed to view the clinical history.",
-    )
-    decision_reason: Mapped[str | None] = mapped_column(
+    content_type: Mapped[str | None] = mapped_column(
         String(128),
         nullable=True,
-        doc="Optional reason returned by HCEN for auditing.",
+        doc="MIME type of the document.",
+    )
+    provider_name: Mapped[str | None] = mapped_column(
+        String,
+        nullable=True,
+        doc="Name of the provider.",
     )
