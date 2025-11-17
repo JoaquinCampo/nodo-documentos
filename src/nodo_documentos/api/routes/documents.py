@@ -82,8 +82,8 @@ async def create_document_upload_url(
     )
 
     return PresignedUploadResponse(
-        upload_url=presigned.url,
-        s3_url=build_s3_uri(object_key),
+        upload_url=presigned.url,  # type: ignore[arg-type]
+        s3_url=build_s3_uri(object_key),  # type: ignore[arg-type]
         object_key=object_key,
         expires_in_seconds=presigned.expires_in,
     )

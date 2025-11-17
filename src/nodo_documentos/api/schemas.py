@@ -24,7 +24,9 @@ class DocumentCreateRequest(BaseModel):
     created_by: CI
     health_user_ci: CI
     clinic_name: str = Field(min_length=1, description="The name of the clinic")
-    s3_url: LongString
+    s3_url: LongString | None = Field(
+        default=None, description="URL of the document in S3"
+    )
     title: str | None = Field(
         default=None, max_length=255, description="Title of the document"
     )
@@ -43,7 +45,7 @@ class DocumentResponse(BaseModel):
     health_user_ci: CI
     clinic_name: str
     created_at: datetime
-    s3_url: LongString
+    s3_url: LongString | None = None
     title: str | None = None
     description: str | None = None
     content_type: str | None = None
@@ -69,7 +71,9 @@ class Message(BaseModel):
     """A message in a conversation."""
 
     role: Literal["user", "assistant"] = Field(
-        description="Message role: 'user' for user messages, 'assistant' for AI responses"
+        description=(
+            "Message role: 'user' for user messages, 'assistant' for AI responses"
+        )
     )
     content: str = Field(description="The message content")
 

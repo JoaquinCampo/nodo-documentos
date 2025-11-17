@@ -38,6 +38,13 @@ class RAGService:
         """
         logger.info(f"Starting RAG indexing for document {document.doc_id}")
 
+        # Skip indexing if document doesn't have an S3 URL
+        if not document.s3_url:
+            logger.warning(
+                f"Skipping RAG indexing for document {document.doc_id}: no S3 URL"
+            )
+            return
+
         temp_file_path = None
         try:
             logger.debug(f"Downloading PDF from {document.s3_url}")

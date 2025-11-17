@@ -48,9 +48,9 @@ class Document(Base):
         server_default=func.now(),
         doc="The timestamp of when the document was uploaded.",
     )
-    s3_url: Mapped[str] = mapped_column(
+    s3_url: Mapped[str | None] = mapped_column(
         String(512),
-        nullable=False,
+        nullable=True,
         doc="The URL of the document in S3.",
     )
     title: Mapped[str | None] = mapped_column(

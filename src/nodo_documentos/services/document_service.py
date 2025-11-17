@@ -15,7 +15,7 @@ class DocumentService:
         created_by: CI,
         health_user_ci: CI,
         clinic_name: str,
-        s3_url: LongString,
+        s3_url: LongString | None = None,
         title: str | None = None,
         description: str | None = None,
         content_type: str | None = None,
