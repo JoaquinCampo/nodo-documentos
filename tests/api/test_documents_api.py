@@ -23,6 +23,26 @@ async def test_create_document(async_client):
 
 
 @pytest.mark.asyncio
+async def test_create_document_with_hcen_aliases(async_client):
+    """Test that HCEN field names (health_worker_ci, content_url) work correctly."""
+    payload = {
+        "health_worker_ci": "12345678",  # Alias for created_by
+        "health_user_ci": "87654321",
+        "clinic_name": "Test Clinic",
+        "content_url": "s3://bucket/doc-2",  # Alias for s3_url
+        "title": "Test Document",
+    }
+
+    response = await async_client.post("/api/documents", json=payload)
+    assert response.status_code == 201
+    created = response.json()
+    assert created["health_user_ci"] == payload["health_user_ci"]
+    assert created["created_by"] == payload["health_worker_ci"]
+    assert created["s3_url"] == payload["content_url"]
+    assert created["doc_id"]
+
+
+@pytest.mark.asyncio
 async def test_create_presigned_upload_url(async_client, monkeypatch):
     fake_uuid = "11111111-2222-3333-4444-555555555555"
     clinic_name = "Test Clinic"

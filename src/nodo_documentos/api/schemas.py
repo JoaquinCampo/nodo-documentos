@@ -18,14 +18,24 @@ UUIDStr = Annotated[
         )
     ),
 ]
+TextContent = Annotated[
+    str, Field(max_length=100000, description="Text content of the document")
+]
 
 
 class DocumentCreateRequest(BaseModel):
-    created_by: CI
+    created_by: CI = Field(
+        alias="health_worker_ci",
+        description=(
+            "CI of the user who created the document (also accepts 'health_worker_ci')"
+        ),
+    )
     health_user_ci: CI
     clinic_name: str = Field(min_length=1, description="The name of the clinic")
     s3_url: LongString | None = Field(
-        default=None, description="URL of the document in S3"
+        default=None,
+        alias="content_url",
+        description="URL of the document in S3 (also accepts 'content_url')",
     )
     title: str | None = Field(
         default=None, max_length=255, description="Title of the document"
@@ -37,6 +47,12 @@ class DocumentCreateRequest(BaseModel):
         default=None, max_length=128, description="MIME type of the document"
     )
     provider_name: str | None = Field(default=None, description="Name of the provider")
+    content: TextContent | None = Field(
+        default=None,
+        description="Text content of the document (for documents without file upload)",
+    )
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class DocumentResponse(BaseModel):
@@ -50,6 +66,7 @@ class DocumentResponse(BaseModel):
     description: str | None = None
     content_type: str | None = None
     provider_name: str | None = None
+    content: TextContent | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

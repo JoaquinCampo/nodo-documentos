@@ -20,6 +20,7 @@ class DocumentService:
         description: str | None = None,
         content_type: str | None = None,
         provider_name: str | None = None,
+        content: str | None = None,
     ) -> Document:
         """Register a newly uploaded document."""
 
@@ -32,6 +33,7 @@ class DocumentService:
             description=description,
             content_type=content_type,
             provider_name=provider_name,
+            content=content,
         )
 
     async def list_documents_for_health_user(

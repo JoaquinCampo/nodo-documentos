@@ -22,6 +22,7 @@ class DocumentRepository:
         description: str | None = None,
         content_type: str | None = None,
         provider_name: str | None = None,
+        content: str | None = None,
     ) -> Document:
         """Persist a new document metadata row linked to the uploaded file."""
         document = Document(
@@ -33,6 +34,7 @@ class DocumentRepository:
             description=description,
             content_type=content_type,
             provider_name=provider_name,
+            content=content,
         )
         self._session.add(document)
         await self._session.flush()
