@@ -57,18 +57,27 @@ class DocumentCreateRequest(BaseModel):
 
 class DocumentResponse(BaseModel):
     doc_id: UUID
-    created_by: CI
+    created_by: CI = Field(
+        alias="health_worker_ci",
+        serialization_alias="health_worker_ci",
+        description="CI of the user who created the document",
+    )
     health_user_ci: CI
     clinic_name: str
     created_at: datetime
-    s3_url: LongString | None = None
+    s3_url: LongString | None = Field(
+        default=None,
+        alias="content_url",
+        serialization_alias="content_url",
+        description="URL of the document in S3",
+    )
     title: str | None = None
     description: str | None = None
     content_type: str | None = None
     provider_name: str | None = None
     content: TextContent | None = None
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class PresignedUploadRequest(BaseModel):
