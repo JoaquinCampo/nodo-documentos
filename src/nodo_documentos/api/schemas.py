@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import AnyUrl, BaseModel, ConfigDict, Field
+from pydantic import AnyUrl, BaseModel, ConfigDict, Field, field_serializer
 
 CI = Annotated[str, Field(pattern=r"^\d{8}$")]
 LongString = Annotated[str, Field(min_length=1, max_length=512)]
@@ -69,7 +69,9 @@ class DocumentResponse(BaseModel):
         default=None,
         alias="content_url",
         serialization_alias="content_url",
-        description="URL of the document in S3",
+        description=(
+            "Presigned HTTPS URL for downloading the document (expires after a period)"
+        ),
     )
     title: str | None = None
     description: str | None = None
@@ -78,6 +80,27 @@ class DocumentResponse(BaseModel):
     content: TextContent | None = None
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    @field_serializer("s3_url", when_used="json")
+    def serialize_content_url(self, value: str | None) -> str | None:
+        """
+        Transform internal S3 URI (s3://bucket/key) into presigned download URL.
+
+        This serializer automatically converts the internal S3 URI into a presigned
+        HTTPS URL that clients can use to download the document.
+        """
+        if not value:
+            return None
+
+        # If it's already an HTTPS URL, return as-is (shouldn't happen, but be safe)
+        if value.startswith("https://"):
+            return value
+
+        # Generate presigned URL from S3 URI
+        from nodo_documentos.utils.s3_utils import generate_presigned_get_url
+
+        presigned = generate_presigned_get_url(s3_url=value)
+        return presigned.url if presigned else None
 
 
 class PresignedUploadRequest(BaseModel):

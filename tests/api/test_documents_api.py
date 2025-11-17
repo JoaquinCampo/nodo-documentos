@@ -7,7 +7,13 @@ from nodo_documentos.utils.settings import s3_settings
 
 
 @pytest.mark.asyncio
-async def test_create_document(async_client):
+async def test_create_document(async_client, monkeypatch):
+    expected_presigned_url = "https://s3.amazonaws.com/bucket/doc-1?signature=test"
+    monkeypatch.setattr(
+        "nodo_documentos.utils.s3_utils.generate_presigned_get_url",
+        lambda **kwargs: PresignedUrl(url=expected_presigned_url, expires_in=600),
+    )
+
     payload = {
         "created_by": "12345678",
         "health_user_ci": "87654321",
@@ -20,11 +26,19 @@ async def test_create_document(async_client):
     created = response.json()
     assert created["health_user_ci"] == payload["health_user_ci"]
     assert created["doc_id"]
+    # content_url should be presigned HTTPS URL
+    assert created["content_url"] == expected_presigned_url
 
 
 @pytest.mark.asyncio
-async def test_create_document_with_hcen_aliases(async_client):
+async def test_create_document_with_hcen_aliases(async_client, monkeypatch):
     """Test that HCEN field names (health_worker_ci, content_url) work correctly."""
+    expected_presigned_url = "https://s3.amazonaws.com/bucket/doc-2?signature=abc123"
+    monkeypatch.setattr(
+        "nodo_documentos.utils.s3_utils.generate_presigned_get_url",
+        lambda **kwargs: PresignedUrl(url=expected_presigned_url, expires_in=600),
+    )
+
     payload = {
         "health_worker_ci": "12345678",  # Alias for created_by
         "health_user_ci": "87654321",
@@ -37,8 +51,11 @@ async def test_create_document_with_hcen_aliases(async_client):
     assert response.status_code == 201
     created = response.json()
     assert created["health_user_ci"] == payload["health_user_ci"]
-    assert created["created_by"] == payload["health_worker_ci"]
-    assert created["s3_url"] == payload["content_url"]
+    # Response should use HCEN aliases (health_worker_ci, content_url)
+    assert created["health_worker_ci"] == payload["health_worker_ci"]
+    # content_url should be a presigned HTTPS URL, not the internal S3 URI
+    assert created["content_url"] == expected_presigned_url
+    assert created["content_url"].startswith("https://")
     assert created["doc_id"]
 
 
@@ -106,3 +123,80 @@ async def test_presigned_upload_url_sanitizes_filename(async_client, monkeypatch
 
     assert response.status_code == 201
     assert captured["key"].endswith("/report.pdf")
+
+
+@pytest.mark.asyncio
+async def test_content_url_is_presigned_https_url(async_client, monkeypatch):
+    """Test that content_url is automatically converted to presigned HTTPS URL."""
+    s3_uri = "s3://test-bucket/clinic/doc.pdf"
+    expected_presigned_url = "https://s3.amazonaws.com/test-bucket/clinic/doc.pdf?X-Amz-Signature=xyz"
+    
+    monkeypatch.setattr(
+        "nodo_documentos.utils.s3_utils.generate_presigned_get_url",
+        lambda **kwargs: PresignedUrl(url=expected_presigned_url, expires_in=600),
+    )
+
+    payload = {
+        "created_by": "12345678",
+        "health_user_ci": "87654321",
+        "clinic_name": "Test Clinic",
+        "s3_url": s3_uri,
+    }
+
+    response = await async_client.post("/api/documents", json=payload)
+    assert response.status_code == 201
+    created = response.json()
+    
+    # content_url should be the presigned HTTPS URL, not the internal S3 URI
+    assert created["content_url"] == expected_presigned_url
+    assert created["content_url"].startswith("https://")
+    assert s3_uri not in created["content_url"]  # Should not contain s3://
+
+
+@pytest.mark.asyncio
+async def test_content_url_is_none_when_no_s3_url(async_client):
+    """Test that content_url is None when document has no S3 URL."""
+    payload = {
+        "created_by": "12345678",
+        "health_user_ci": "87654321",
+        "clinic_name": "Test Clinic",
+        "title": "Text-only document",
+        "content": "This is a text document without file upload",
+    }
+
+    response = await async_client.post("/api/documents", json=payload)
+    assert response.status_code == 201
+    created = response.json()
+    
+    assert created["content_url"] is None
+
+
+@pytest.mark.asyncio
+async def test_clinical_history_returns_presigned_urls(async_client, monkeypatch):
+    """Test that clinical history endpoint returns presigned URLs for content_url."""
+    expected_presigned_url = "https://s3.amazonaws.com/bucket/doc.pdf?signature=test123"
+    monkeypatch.setattr(
+        "nodo_documentos.utils.s3_utils.generate_presigned_get_url",
+        lambda **kwargs: PresignedUrl(url=expected_presigned_url, expires_in=600),
+    )
+
+    # Create a document first
+    create_response = await async_client.post(
+        "/api/documents",
+        json={
+            "created_by": "12345678",
+            "health_user_ci": "87654321",
+            "clinic_name": "Test Clinic",
+            "s3_url": "s3://bucket/doc.pdf",
+        },
+    )
+    assert create_response.status_code == 201
+
+    # Fetch clinical history
+    response = await async_client.get("/api/clinical-history/87654321")
+    assert response.status_code == 200
+    documents = response.json()
+    
+    assert len(documents) == 1
+    assert documents[0]["content_url"] == expected_presigned_url
+    assert documents[0]["content_url"].startswith("https://")

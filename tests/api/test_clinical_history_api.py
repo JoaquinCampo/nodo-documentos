@@ -2,8 +2,16 @@ from __future__ import annotations
 
 import pytest
 
+from nodo_documentos.utils.s3_utils import PresignedUrl
 
-async def _create_document(async_client) -> dict:
+
+async def _create_document(async_client, monkeypatch) -> dict:
+    expected_presigned_url = "https://s3.amazonaws.com/bucket/doc-1?signature=test"
+    monkeypatch.setattr(
+        "nodo_documentos.utils.s3_utils.generate_presigned_get_url",
+        lambda **kwargs: PresignedUrl(url=expected_presigned_url, expires_in=600),
+    )
+
     payload = {
         "created_by": "12345678",
         "health_user_ci": "87654321",
@@ -16,8 +24,8 @@ async def _create_document(async_client) -> dict:
 
 
 @pytest.mark.asyncio
-async def test_fetch_clinical_history_returns_documents(async_client):
-    created = await _create_document(async_client)
+async def test_fetch_clinical_history_returns_documents(async_client, monkeypatch):
+    created = await _create_document(async_client, monkeypatch)
 
     response = await async_client.get(
         f"/api/clinical-history/{created['health_user_ci']}"

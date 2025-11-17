@@ -60,6 +60,73 @@ def generate_presigned_put_url(
     return PresignedUrl(url=url, expires_in=expiration)
 
 
+def extract_key_from_s3_uri(s3_url: str) -> str:
+    """
+    Extract the object key from an S3 URI.
+
+    Args:
+        s3_url: S3 URL in format "s3://bucket/key"
+
+    Returns:
+        The object key
+
+    Raises:
+        ValueError: If URL format is invalid
+    """
+    if not s3_url.startswith("s3://"):
+        raise ValueError(f"Invalid S3 URL format, must start with 's3://': {s3_url}")
+
+    path_part = s3_url[5:]  # Remove "s3://"
+    if "/" not in path_part:
+        raise ValueError(f"Invalid S3 URL format, missing key: {s3_url}")
+
+    _, key = path_part.split("/", 1)
+    # URL-decode the key to handle encoded characters (e.g., %20 -> space)
+    key = urllib.parse.unquote(key)
+    return key
+
+
+def generate_presigned_get_url(
+    *,
+    s3_url: str | None = None,
+    key: str | None = None,
+    expires_in: int | None = None,
+) -> PresignedUrl | None:
+    """
+    Create a presigned URL that allows downloading an object via HTTP GET.
+
+    Either s3_url or key must be provided. If both are provided, key takes precedence.
+
+    Args:
+        s3_url: S3 URL in format "s3://bucket/key"
+        key: Object key directly
+        expires_in: Expiration time in seconds (defaults to s3_settings.presigned_expiration_seconds)
+
+    Returns:
+        PresignedUrl with download URL, or None if neither s3_url nor key is provided
+    """
+    if not key and not s3_url:
+        return None
+
+    if not key:
+        key = extract_key_from_s3_uri(s3_url)
+
+    client = create_s3_client()
+    params: dict[str, str] = {
+        "Bucket": s3_settings.bucket_name,
+        "Key": key,
+    }
+
+    expiration = expires_in or s3_settings.presigned_expiration_seconds
+
+    url = client.generate_presigned_url(
+        ClientMethod="get_object",
+        Params=params,
+        ExpiresIn=expiration,
+    )
+    return PresignedUrl(url=url, expires_in=expiration)
+
+
 def download_from_s3(s3_url: str) -> bytes:
     """
     Download an object from S3 given its URL.
@@ -83,10 +150,8 @@ def download_from_s3(s3_url: str) -> bytes:
         if "/" not in path_part:
             raise ValueError(f"Invalid S3 URL format, missing key: {s3_url}")
 
-        bucket, key = path_part.split("/", 1)
-        # URL-decode the key to handle encoded characters (e.g., %20 -> space)
-        # The s3_url may be URL-encoded when stored, but S3 keys use actual characters
-        key = urllib.parse.unquote(key)
+        bucket, _ = path_part.split("/", 1)
+        key = extract_key_from_s3_uri(s3_url)
 
         client = create_s3_client()
         response = client.get_object(Bucket=bucket, Key=key)
